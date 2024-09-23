@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.xml.parsers.DocumentBuilderFactory
 
-
 data class RssItem(
     val title: String, val description: String, val pubDate: String,
 )
@@ -13,7 +12,6 @@ data class RssItem(
 fun xmlParser(link: String): NodeList {
     val factory = DocumentBuilderFactory.newInstance()
     val xml = factory.newDocumentBuilder().parse(link)
-
     return xml.getElementsByTagName("item")
 }
 
@@ -35,21 +33,29 @@ suspend fun asyncGetRssItemFromLink(link: String): List<RssItem> {
 fun main() {
     val scope = CoroutineScope(Dispatchers.IO)
     var items = listOf<RssItem>()
-    runBlocking {
-        val woowhaItems = async { asyncGetRssItemFromLink("https://techblog.woowahan.com/feed") }
-        val kakaoItems = async { asyncGetRssItemFromLink("https://tech.kakao.com/feed") }
-        items = woowhaItems.await() + kakaoItems.await()
-        items.sortedByDescending { LocalDateTime.parse(it.pubDate, DateTimeFormatter.RFC_1123_DATE_TIME) }
+
+    // RSS 데이터를 10분마다 업데이트하는 코루틴
+    scope.launch {
+        while (true) {
+            val woowhaItems = async { asyncGetRssItemFromLink("https://techblog.woowahan.com/feed") }
+            val kakaoItems = async { asyncGetRssItemFromLink("https://tech.kakao.com/feed") }
+            items = woowhaItems.await() + kakaoItems.await()
+            items = items.sortedByDescending { LocalDateTime.parse(it.pubDate, DateTimeFormatter.RFC_1123_DATE_TIME) }
+
+            println("RSS 데이터가 업데이트되었습니다.")
+            delay( 10 * 1000L) // 10분 (밀리초 단위)
+        }
     }
 
-    print("검색어를 입력하세요: ")
-    val searchWord = readln().trim().toString()
-    items.filter { it.title.contains(searchWord) }.forEach {
-        println(it.pubDate)
-        println(it.title)
-        println(it.description)
-        println()
+    // 사용자 입력에 따른 검색 기능
+    while (true) {
+        print("검색어를 입력하세요: ")
+        val searchWord = readln().trim().toString()
+        items.filter { it.title.contains(searchWord) }.forEach {
+            println(it.pubDate)
+            println(it.title)
+            println(it.description)
+            println()
+        }
     }
 }
-
-
