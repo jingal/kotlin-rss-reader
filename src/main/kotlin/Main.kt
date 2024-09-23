@@ -4,6 +4,8 @@ import org.w3c.dom.NodeList
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.collections.listOf
+import kotlin.collections.plus
 
 data class RssItem(
     val title: String, val description: String, val pubDate: String,
@@ -30,19 +32,33 @@ suspend fun asyncGetRssItemFromLink(link: String): List<RssItem> {
     return rssItems
 }
 
+fun updateList(originalList : MutableList<RssItem>, newList : List<RssItem>) {
+    var prevSize = originalList.size
+
+    for( item in newList) {
+        if (!originalList.contains(item)) {
+                originalList.add(item)
+            }
+    }
+
+    if (prevSize < originalList.size) {
+        println("RSS 데이터가 업데이트되었습니다.")
+        originalList.sortByDescending { LocalDateTime.parse(it.pubDate, DateTimeFormatter.RFC_1123_DATE_TIME) }
+    }
+}
+
 fun main() {
     val scope = CoroutineScope(Dispatchers.IO)
-    var items = listOf<RssItem>()
+    var items = mutableListOf<RssItem>()
 
     // RSS 데이터를 10분마다 업데이트하는 코루틴
     scope.launch {
         while (true) {
             val woowhaItems = async { asyncGetRssItemFromLink("https://techblog.woowahan.com/feed") }
             val kakaoItems = async { asyncGetRssItemFromLink("https://tech.kakao.com/feed") }
-            items = woowhaItems.await() + kakaoItems.await()
-            items = items.sortedByDescending { LocalDateTime.parse(it.pubDate, DateTimeFormatter.RFC_1123_DATE_TIME) }
+            val newItems = woowhaItems.await() + kakaoItems.await()
 
-            println("RSS 데이터가 업데이트되었습니다.")
+            updateList(items, newItems)
             delay( 10 * 1000L) // 10분 (밀리초 단위)
         }
     }
