@@ -1,3 +1,4 @@
+import model.RssItem
 import org.junit.jupiter.api.Test
 import kotlinx.coroutines.test.runTest
 

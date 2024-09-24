@@ -1,25 +1,17 @@
+import model.RssItem
 import kotlinx.coroutines.*
+import model.RssItems
+import model.RssXmlUtil
 import org.w3c.dom.Element
-import org.w3c.dom.NodeList
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import javax.xml.parsers.DocumentBuilderFactory
-import kotlin.collections.listOf
 import kotlin.collections.plus
 
-data class RssItem(
-    val title: String, val description: String, val pubDate: String,
-)
+suspend fun asyncGetRssItemFromLink(link: String): RssItems  {
+    val rssItems = RssItems(mutableListOf<RssItem>())
+//    val items = xmlParser(link)
+    val items = RssXmlUtil(Dispatchers.IO).rssItemParser(link)
 
-fun xmlParser(link: String): NodeList {
-    val factory = DocumentBuilderFactory.newInstance()
-    val xml = factory.newDocumentBuilder().parse(link)
-    return xml.getElementsByTagName("item")
-}
-
-suspend fun asyncGetRssItemFromLink(link: String): List<RssItem> {
-    val rssItems = mutableListOf<RssItem>()
-    val items = xmlParser(link)
     for (i in 0 until items.length) {
         val item = items.item(i) as Element
 
