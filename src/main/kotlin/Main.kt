@@ -1,6 +1,7 @@
 import model.RssItem
 import kotlinx.coroutines.*
 import model.RssItems
+import model.RssService
 import model.RssXmlUtil
 import org.w3c.dom.Element
 import java.time.LocalDateTime
@@ -41,19 +42,11 @@ fun updateList(originalList : MutableList<RssItem>, newList : List<RssItem>) {
 
 fun main() {
     val scope = CoroutineScope(Dispatchers.IO)
-    var items = mutableListOf<RssItem>()
+    var items = RssItems(mutableListOf<RssItem>())
+    val urlList = listOf<String>("https://techblog.woowahan.com/feed", "https://tech.kakao.com/feed")
 
-    // RSS 데이터를 10분마다 업데이트하는 코루틴
-    scope.launch {
-        while (true) {
-            val woowhaItems = async { asyncGetRssItemFromLink("https://techblog.woowahan.com/feed") }
-            val kakaoItems = async { asyncGetRssItemFromLink("https://tech.kakao.com/feed") }
-            val newItems = woowhaItems.await() + kakaoItems.await()
-
-            updateList(items, newItems)
-            delay( 10 * 1000L) // 10분 (밀리초 단위)
-        }
-    }
+    val rssService = RssService(scope, Dispatchers.IO, urlList, items)
+    rssService.rssDispatching()
 
     // 사용자 입력에 따른 검색 기능
     while (true) {

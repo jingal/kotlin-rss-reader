@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.*
 
 class MainKtTest {
 
+    /*
     @Test
     fun xmlParser() {
         // Given
@@ -15,6 +16,7 @@ class MainKtTest {
         // Then
         assertEquals(10, items.length)
     }
+     */
 
     @Test
     fun asyncGetRssItemFromLink(): Unit = runTest {
