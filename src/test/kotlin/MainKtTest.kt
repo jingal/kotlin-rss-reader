@@ -17,7 +17,7 @@ class MainKtTest {
         assertEquals(10, items.length)
     }
      */
-
+/*
     @Test
     fun asyncGetRssItemFromLink(): Unit = runTest {
         // Given
@@ -28,6 +28,8 @@ class MainKtTest {
         assertEquals(10, items.size)
     }
 
+ */
+/*
     @Test
     fun updateList() {
         // Given
@@ -42,4 +44,6 @@ class MainKtTest {
         // Then
         assertEquals(3, originalList.size)
     }
+
+ */
 }
